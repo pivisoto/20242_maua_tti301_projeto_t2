@@ -5,34 +5,37 @@ app.use(express.json());
 
 const palavraChave = "importante";
 
-async function enviarEvento(url, evento) {
-  try {
-    await axios.post(url, evento);
-  } catch (error) {
-    if (url.includes('host.docker.internal')) {
-      const fallbackUrl = url.replace('host.docker.internal', 'localhost');
-      console.error(`Erro ao conectar com ${url}. Tentando com ${fallbackUrl}`);
-      try {
-        await axios.post(fallbackUrl, evento);
-      } catch (err) {
-        console.error(`Erro ao conectar com ${fallbackUrl}:`, err.message);
-      }
-    } else {
-      console.error(`Erro ao conectar com ${url}:`, error.message);
+async function enviarEvento(evento) {
+  const urls = [
+    "http://host.docker.internal:10000/eventos",
+    "http://localhost:10000/eventos",
+    "http://barramento-de-eventos-service:10000/eventos"
+  ];
+
+  for (let url of urls) {
+    try {
+      await axios.post(url, evento);
+      console.log(`Evento enviado com sucesso para ${url}`);
+      return;
+    } catch (error) {
     }
   }
+  throw new Error("Todas as tentativas de enviar o evento falharam.");
 }
+
 
 const funcoes = {
   ObservacaoCriada: (observacao) => {
-    observacao.status = 
-      observacao.texto.includes(palavraChave) ? "importante" : "comum";
-    enviarEvento("http://host.docker.internal:10000/eventos", {
+    const regex = new RegExp(`\\b${palavraChave}\\b`, 'i');
+    observacao.status = regex.test(observacao.texto) ? "importante" : "comum";
+    console.log(observacao);
+    enviarEvento({
       tipo: "ObservacaoClassificada",
       dados: observacao,
     });
   },
 };
+
 
 app.post("/eventos", (req, res) => {
   try {

@@ -32,11 +32,14 @@ app.put('/lembretes/:id/observacoes', async (req, res) => {
   try {
     await axios.post('http://host.docker.internal:10000/eventos', evento);
   } catch (error) {
-    console.warn("Erro ao conectar com host.docker.internal, tentando localhost");
     try {
       await axios.post('http://localhost:10000/eventos', evento);
     } catch (err) {
-      console.error("Erro ao conectar com localhost:", err.message);
+    }
+    try {
+        await axios.post("http://barramento-de-eventos-service:10000/eventos", evento);
+    } catch (err) {
+        console.error('Erro ao enviar para o barramento:', err.message);
     }
   }
   res.status(201).send(observacoesDoLembrete);
@@ -62,11 +65,14 @@ const funcoes = {
     try {
       await axios.post('http://host.docker.internal:10000/eventos', evento);
     } catch (error) {
-      console.warn("Erro ao conectar com host.docker.internal, tentando localhost");
       try {
         await axios.post('http://localhost:10000/eventos', evento);
       } catch (err) {
-        console.error("Erro ao conectar com localhost:", err.message);
+      }
+      try {
+        await axios.post("http://barramento-de-eventos-service:10000/eventos", evento);
+      } catch (err) {
+        console.error('Erro ao enviar para o barramento:', err.message);
       }
     }
   },

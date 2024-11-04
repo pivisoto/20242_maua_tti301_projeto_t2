@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consulta-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consulta
+  template:
+    metadata:
+      labels:
+        app: consulta
+    spec:
+      containers:
+        - name: consulta
+          image: pivisoto/consulta
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: consulta-clusterip-service
+spec:
+  selector:
+    app: consulta
+  ports:
+  - name: consulta
+    protocol: TCP
+    port: 6000
+    targetPort: 6000

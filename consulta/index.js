@@ -22,22 +22,22 @@ const funcoes = {
 };
 
 async function obterEventos() {
-  let url = "http://host.docker.internal:10000/eventos";
-  try {
-    const resp = await axios.get(url);
-    return resp.data;
-  } catch (error) {
-    console.error(`Erro ao conectar com ${url}. Tentando com localhost`);
-    url = "http://localhost:10000/eventos";
+  let urls = [
+    "http://host.docker.internal:10000/eventos",
+    "http://localhost:10000/eventos",
+    "http://barramento-de-eventos-service:10000/eventos"
+  ];
+
+  for (let url of urls) {
     try {
       const resp = await axios.get(url);
       return resp.data;
-    } catch (err) {
-      console.error(`Erro ao conectar com ${url}:`, err.message);
-      return [];
+    } catch (error) {
     }
   }
+  throw new Error("Todas as tentativas de obter eventos falharam.");
 }
+
 
 app.get("/lembretes", (req, res) => {
   res.status(200).send(baseConsulta);

@@ -14,13 +14,13 @@ const funcoes = {
 };
 
 
-app.post("/eventos", (req, res) => {
-  try {
-    funcoes[req.body.tipo](req.body.dados);
-  } catch (err) {
-    res.status(200).send({ msg: "ok" });
-  }
-});
+//app.post("/eventos", (req, res) => {
+//  try {
+//    funcoes[req.body.tipo](req.body.dados);
+//  } catch (err) {
+//    res.status(200).send({ msg: "ok" });
+//  }
+//});
 
 
 app.get('/lembretes', (req, res) => {
@@ -40,17 +40,27 @@ app.put('/lembretes', async (req, res) => {
   try {
     await axios.post("http://host.docker.internal:10000/eventos", evento);
   } catch (error) {
-    console.warn("Erro ao conectar com host.docker.internal, tentando localhost");
     try {
       await axios.post("http://localhost:10000/eventos", evento);
     } catch (err) {
-      console.error("Erro ao conectar com localhost:", err.message);
+    }
+    try {
+        await axios.post("http://barramento-de-eventos-service:10000/eventos", evento);
+    } catch (err) {
+        console.error('Erro ao enviar para o barramento:', err.message);
     }
   }
 
   res.status(201).send(lembretes[contador]);
 });
 
+
+app.post("/eventos", (req, res) => {
+    console.log("Evento recebido: " + req.body.tipo);
+    res.status(200).send({ msg: "ok" });
+});
+
+    
 app.listen(4000, () => {
   console.log('Lembretes. Porta 4000');
 });

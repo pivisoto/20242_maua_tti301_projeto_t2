@@ -23,7 +23,7 @@ const adicionarLog = (tipo) => {
     data_hora: dataHora
   });
 };
-//
+
 app.post('/eventos', (req, res) => {
   const { tipo } = req.body;
   adicionarLog(tipo);
